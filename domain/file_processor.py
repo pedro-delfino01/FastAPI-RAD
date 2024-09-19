@@ -74,3 +74,21 @@ class FileProcessor:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Arquivo inexistente, por favor acessar"
                                        " a rota de criar a arquivo.")
+
+    def list_files(self):
+        """
+            List all data in a file
+            :return: all content in a created file
+        """
+        if os.path.exists(self.file_path):
+            try:
+                with open(self.file_path, "r") as file:
+                    content = file.read()
+                return {"message": "Arquivo lido com sucesso!",
+                        "content": f"{content}"}
+            except:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="Não foi possível ler o arquivo")
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="Não foi encontrado o arquivo.")
