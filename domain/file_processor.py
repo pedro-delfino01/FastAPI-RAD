@@ -75,20 +75,39 @@ class FileProcessor:
                                 detail="Arquivo inexistente, por favor acessar"
                                        " a rota de criar a arquivo.")
 
-    def list_files(self):
+    async def list_data(self):
         """
             List all data in a file
             :return: all content in a created file
         """
         if os.path.exists(self.file_path):
-            try:
-                with open(self.file_path, "r") as file:
-                    content = file.read()
-                return {"message": "Arquivo lido com sucesso!",
-                        "content": f"{content}"}
-            except:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                    detail="Não foi possível ler o arquivo")
+            lines = []
+            with open(self.file_path, mode="r") as file:
+                csv_reader = csv.DictReader(file)
+                dict(csv_reader)
+                for row in csv_reader:
+                    row_dict = dict(conta=row[0], agencia=row[1], texto=row[2], valor=row[3])
+                    lines.append(row_dict)
+            return {"data": lines}
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="Não foi encontrado o arquivo.")
+
+
+    async def delete_data(self, selected_line: int):
+        if os.path.exists(self.file_path):
+            with open(self.file_path, mode='r') as file:
+                lines = file.readlines()
+
+            if selected_line < 1 or selected_line >= len(lines):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Linha selecionada inválida!")
+
+            with open(self.file_path, mode='w') as file:
+                for index, line in enumerate(lines):
+                    if index != selected_line:
+                        file.write(line)
+            return {"message": f"Linha {selected_line} deletada!"}
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Arquivo inexistente!")
